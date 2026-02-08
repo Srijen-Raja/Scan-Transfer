@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "109774892533",
+    "firebase_url": "https://imageshare-87733-default-rtdb.firebaseio.com",
+    "project_id": "imageshare-87733",
+    "storage_bucket": "imageshare-87733.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:109774892533:android:02b507e9bf5fbeae7044bc",
+        "android_client_info": {
+          "package_name": "com.srijen.image"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDL5sUlnlEGHyeAujBrs0AMco3C_7U3kr0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

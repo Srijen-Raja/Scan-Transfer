@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -30,6 +31,28 @@ void main() async {
     ),
     home: HomeScreen(),
   ));
+}
+
+final List<String> _adjectives = [
+  "Golden", "Silver", "Crimson", "Swift", "Bright", "Mighty", "Royal",
+  "Electric", "Neon", "Frozen", "Cosmic", "Lunar", "Solar", "Vivid",
+  "Wild", "Quiet", "Dancing", "Flying", "Hidden", "Ancient", "Primal",
+  "Crystal", "Mystic", "Turbo", "Velvet", "Frosty", "Zesty", "Magic"
+];
+
+final List<String> _fruits = [
+  "Mango", "Apple", "Banana", "Kiwi", "Orange", "Cherry", "Grape", "Peach",
+  "Papaya", "Melon", "Berry", "Dragonfruit", "Lychee", "Guava", "Plum",
+  "Apricot", "Fig", "Pear", "Coconut", "Avocado", "Lime", "Lemon",
+  "Pineapple", "Durian", "Passionfruit", "Jackfruit", "Starfruit", "Olive"
+];
+
+String _generateUniqueName() {
+  final random = Random();
+  String adj = _adjectives[random.nextInt(_adjectives.length)];
+  String fruit = _fruits[random.nextInt(_fruits.length)];
+  int number = random.nextInt(99) + 1; // Number between 1 and 99
+  return "$adj $fruit #$number";
 }
 
 Future<void> _deleteAllImages(BuildContext context) async {
@@ -74,6 +97,8 @@ class ActionCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const ActionCard({super.key, required this.title, required this.icon, required this.color, required this.onTap});
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -212,10 +237,11 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     String base64Image = base64Encode(compressedBytes);
-
+    String uniqueName = _generateUniqueName();
     await FirebaseFirestore.instance.collection('images').add({
       'data': base64Image,
       'timestamp': FieldValue.serverTimestamp(),
+      'fruitName': uniqueName,
     });
 
     if (mounted) {
@@ -384,6 +410,9 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     }
   }
 
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -401,8 +430,14 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
 
           if (docs.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              var data = docs.first.data() as Map<String, dynamic>?;
-              if (data != null && data.containsKey('data')) _autoDownload(docs.first.id, data['data']);
+              for (var doc in docs) {
+                if (!_downloadedIds.contains(doc.id)) {
+                  var data = doc.data() as Map<String, dynamic>?;
+                  if (data != null && data.containsKey('data')) {
+                    _autoDownload(doc.id, data['data']);
+                  }
+                }
+              }
             });
           }
 
@@ -414,7 +449,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
               var data = doc.data() as Map<String, dynamic>;
               String? base64String = data['data'];
               bool isSaved = _downloadedIds.contains(doc.id);
-
+              String fruitName = data['fruitName'] ?? "Image #${doc.id.substring(0, 4)}";
               return Card(
                 elevation: 0,
                 color: Colors.white,
@@ -428,7 +463,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     isSaved ? Icons.check_circle : Icons.sync,
                     color: isSaved ? Colors.green : Colors.blue,
                   ),
-                  title: Text("Image #${doc.id.substring(0, 4)}"),
+                  title: Text(fruitName),
                   subtitle: Text(isSaved ? "Saved to Gallery" : "Syncing..."),
 
                   trailing: (base64String != null && base64String.isNotEmpty)
